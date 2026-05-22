@@ -1,0 +1,291 @@
+{% extends 'agency/base.html' %}
+
+{% block title %}Личный кабинет — Глобус Тревел{% endblock %}
+
+{% block content %}
+
+{# ====== БЛОК ВРЕМЕНИ — отображается для всех ролей ====== #}
+<div class="card" style="background: #fafafa; margin-bottom: 30px;">
+    <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start;">
+
+        <div>
+            <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #555;">🌍 Ваша тайм-зона</h4>
+            <p style="margin: 0; font-weight: bold; font-size: 16px;">{{ user_tz_name }}</p>
+            <p style="margin: 4px 0 0 0; font-size: 15px;">
+                Сейчас у вас: <strong>{{ local_now_str }}</strong>
+            </p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #777;">
+                UTC: {{ utc_now_str }}
+            </p>
+        </div>
+
+        <div>
+            <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #555;">📅 Календарь</h4>
+            <pre style="
+                font-family: monospace;
+                font-size: 13px;
+                line-height: 1.6;
+                margin: 0;
+                color: #333;
+                background: transparent;
+            ">{{ cal_text }}</pre>
+        </div>
+
+    </div>
+</div>
+{# ====== КОНЕЦ БЛОКА ВРЕМЕНИ ====== #}
+
+<div style="margin-bottom: 40px;">
+    <h1>Личный кабинет</h1>
+    <p style="color: #666;">
+        Пользователь: <strong>{{ request.user.username }}</strong> |
+        Роль в системе:
+        <span
+            style="background: #111; color: #fff; padding: 4px 8px; font-size: 12px; border-radius: 3px; font-weight: bold;">{{ role_label }}</span>
+    </p>
+</div>
+
+{# ========================================================================= #}
+{# БЛОК ОТОБРАЖЕНИЯ ДЛЯ КЛИЕНТА #}
+{# ========================================================================= #}
+{% if role == 'client' %}
+<div class="card">
+    <h3>Ваши личные данные</h3>
+    <p><strong>ФИО:</strong> {{ client.last_name }} {{ client.first_name }} {{ client.middle_name|default:"" }}</p>
+    <p><strong>Телефон:</strong> {{ client.phone }}</p>
+    <p><strong>Адрес:</strong> {{ client.address }}</p>
+</div>
+
+{% if orders %}
+{% with orders.0 as last_order %}
+{% if last_order.employee %}
+<div class="card" style="background: #f9f9ff; border-left: 4px solid #007bff; margin-top: 20px;">
+    <h4 style="margin-top: 0;">Ваш персональный менеджер</h4>
+    <p><strong>{{ last_order.employee.full_name }}</strong></p>
+    <p style="font-size: 14px; color: #555;">{{ last_order.employee.position }}</p>
+    <p style="font-size: 14px; color: #555;">Телефон: {{ last_order.employee.phone }}</p>
+    <p style="font-size: 14px; color: #555;">Email: {{ last_order.employee.email }}</p>
+</div>
+{% endif %}
+{% endwith %}
+{% endif %}
+
+<h2 style="margin-top: 40px;">Информация о ваших покупках</h2>
+{% if orders %}
+{% for order in orders %}
+<div class="card" style="border-left: 4px solid #28a745;">
+    <div style="display: flex; justify-content: space-between;">
+        <strong>Заказ №{{ order.id }}</strong>
+        <span style="color: #666;">
+            {{ order.created_at_local_str }} | UTC: {{ order.created_at_utc_str }}
+        </span>
+    </div>
+    <table style="margin-top: 10px;">
+        <thead>
+            <tr>
+                <th>Путевка / Направление</th>
+                <th>Отель</th>
+                <th>Длительность</th>
+                <th>Дата вылета</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tour in order.tours.all %}
+            <tr>
+                <td><strong>{{ tour.title }}</strong></td>
+                <td>{{ tour.hotel.name }} {{ tour.hotel.stars }}★</td>
+                <td>{{ tour.get_duration_weeks_display }}</td>
+                <td>{{ tour.departure_date|date:"d.m.Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div style="text-align: right; margin-top: 15px; font-size: 16px;">
+        Итоговая стоимость: <strong>{{ order.total_cost }} BYN</strong>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<p style="color: #666;">Вы еще не приобрели ни одной путевки.</p>
+{% endif %}
+
+<h2 style="margin-top: 40px;">Доступные вам промокоды и купоны</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+    {% for promo in promocodes %}
+    <div class="card" style="text-align: center; background: #fdfdfe; border: 1px dashed #28a745;">
+        <span style="font-size: 18px; font-weight: bold; color: #28a745; display: block;">{{ promo.code }}</span>
+        <small style="color: #666;">Скидка: {{ promo.discount_amount }}%</small>
+    </div>
+    {% empty %}
+    <p style="color: #666;">Действующих промокодов пока нет.</p>
+    {% endfor %}
+</div>
+
+{# ========================================================================= #}
+{# БЛОК ОТОБРАЖЕНИЯ ДЛЯ СОТРУДНИКА #}
+{# ========================================================================= #}
+{% elif role == 'employee' %}
+<div class="card" style="background: #fdfdfd;">
+    <h3>Карточка сотрудника</h3>
+    <p><strong>Менеджер:</strong> {{ employee.full_name }}</p>
+    <p><strong>Должность:</strong> {{ employee.position }}</p>
+    <p><strong>Рабочий телефон:</strong> {{ employee.phone }}</p>
+</div>
+
+<h2 style="margin-top: 40px;">Информация о продажах путевок и клиентах (В работе)</h2>
+{% if orders %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>№ Сделки</th>
+            <th>Дата</th>
+            <th>Данные клиента</th>
+            <th>Проданные путевки</th>
+            <th>Сумма продажи</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>
+                <div style="white-space: nowrap;">
+                    <div>{{ order.local_time_str }}</div>
+                    <div style="font-size: 12px; color: #7a7a7a;">UTC: {{ order.utc_time_str }}</div>
+                </div>
+            </td>
+            <td>
+                <strong>{{ order.client.last_name }} {{ order.client.first_name }}</strong><br>
+                <small style="color: #555;">Тел: {{ order.client.phone }}</small>
+            </td>
+            <td>
+                {% for tour in order.tours.all %}
+                • {{ tour.title }} ({{ tour.get_duration_weeks_display }})<br>
+                {% endfor %}
+            </td>
+            <td><strong>{{ order.total_cost }} BYN</strong></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color: #666;">У вас пока нет оформленных продаж.</p>
+{% endif %}
+
+<h2 style="margin-top: 40px;">Мои клиенты</h2>
+{% if my_clients %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Телефон</th>
+            <th>Адрес</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in my_clients %}
+        <tr>
+            <td>{{ c.last_name }} {{ c.first_name }} {{ c.middle_name|default:"" }}</td>
+            <td>{{ c.phone }}</td>
+            <td>{{ c.address }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color: #666;">У вас пока нет клиентов.</p>
+{% endif %}
+
+{# ========================================================================= #}
+{# БЛОК ОТОБРАЖЕНИЯ ДЛЯ АДМИНИСТРАТОРА (SUPERUSER) #}
+{# ========================================================================= #}
+{% elif role == 'admin' %}
+
+<h2>1. Клиенты с указанием личных данных и инфо о путевках</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Профиль / Личные данные клиента</th>
+            <th>Контакты и адрес</th>
+            <th>Информация о купленных путевках</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clients %}
+        <tr>
+            <td><strong>{{ c.last_name }} {{ c.first_name }} {{ c.middle_name|default:"" }}</strong></td>
+            <td>
+                Адрес: {{ c.address }}<br>
+                Телефон: {{ c.phone }}
+            </td>
+            <td>
+                {% if c.orders.all %}
+                {% for order in c.orders.all %}
+                {% for tour in order.tours.all %}
+                <div style="margin-bottom: 5px; font-size: 13px;">
+                    • {{ tour.title }} | Отель: {{ tour.hotel.name }} | Вылет: {{ tour.departure_date|date:"d.m.Y" }}
+                </div>
+                {% endfor %}
+                {% endfor %}
+                {% else %}
+                <span style="color: #999; font-size: 13px;">Нет купленных путевок</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 style="margin-top: 50px;">2. Список отелей по странам с указанием спецификации климата</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Страна назначения</th>
+            <th>Название отеля / Класс</th>
+            <th>Стоимость в сутки</th>
+            <th>Особенности климата по всем сезонам</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for h in hotels %}
+        <tr>
+            <td><strong>{{ h.country.name }}</strong></td>
+            <td>{{ h.name }} ({{ h.stars }}★)</td>
+            <td>{{ h.price_per_day }} BYN</td>
+            <td style="font-size: 13px; color: #444; line-height: 1.4;">
+                ❄️ <strong>Зима:</strong> {{ h.country.climate_winter }}<br>
+                🌱 <strong>Весна:</strong> {{ h.country.climate_spring }}<br>
+                ☀️ <strong>Лето:</strong> {{ h.country.climate_summer }}<br>
+                🍂 <strong>Осень:</strong> {{ h.country.climate_autumn }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2 style="margin-top: 50px;">3. Количество путевок по клиентам с указанием общей стоимости</h2>
+<table class="table" style="margin-bottom: 50px;">
+    <thead>
+        <tr>
+            <th>Клиент (ФИО)</th>
+            <th>Зарегистрировано путевок</th>
+            <th>Суммарная стоимость всех покупок</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clients %}
+        <tr>
+            <td>{{ c.last_name }} {{ c.first_name }}</td>
+            <td><strong>{{ c.total_tours_count }} шт.</strong></td>
+            <td>
+                <span style="color: #28a745; font-weight: bold;">
+                    {% if c.total_spent %}{{ c.total_spent }}{% else %}0.00{% endif %} BYN
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endif %}
+{% endblock %}

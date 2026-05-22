@@ -1,0 +1,17 @@
+{% extends 'agency/base.html' %}
+
+{% block title %}Удаление путевки — Глобус Тревел{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto; text-align: center;">
+    <h2>Вы уверены, что хотите удалить путевку?</h2>
+    <p style="margin: 20px 0; color: #555;">
+        Будет удалена путевка: <strong>"{{ tour.title }}"</strong>
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn" style="background: #cc0000;">Да, удалить</button>
+        <a href="{% url 'tour_list' %}" style="margin-left: 15px; color: #111; text-decoration: none;">Отмена</a>
+    </form>
+</div>
+{% endblock %}

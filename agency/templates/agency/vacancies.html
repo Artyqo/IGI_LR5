@@ -1,0 +1,14 @@
+{% extends 'agency/base.html' %}
+{% block title %}Вакансии — Глобус Тревел{% endblock %}
+{% block content %}
+<h1>Вакансии компании</h1>
+{% for v in vacancies %}
+<div class="card">
+    <h3>{{ v.title }}</h3>
+    <p>{{ v.description }}</p>
+    <p>Заработная плата: <strong>{{ v.salary }}</strong></p>
+</div>
+{% empty %}
+<p>Активных вакансий на данный момент нет.</p>
+{% endfor %}
+{% endblock %}

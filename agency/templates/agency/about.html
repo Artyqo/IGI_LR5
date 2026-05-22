@@ -1,0 +1,8 @@
+{% extends 'agency/base.html' %}
+{% block title %}О компании — Глобус Тревел{% endblock %}
+{% block content %}
+<h1>О компании</h1>
+<div class="card">
+    <p>{{ company_info.text|default:"Информационное наполнение подгружено из базы данных." }}</p>
+</div>
+{% endblock %}

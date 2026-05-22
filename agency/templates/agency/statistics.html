@@ -1,0 +1,214 @@
+{% extends 'agency/base.html' %}
+{% block title %}Статистика — Глобус Тревел{% endblock %}
+
+{% block content %}
+<h1>Статистика агентства</h1>
+<p style="color: #666; margin-bottom: 30px;">
+    Страница доступна только администратору.
+</p>
+
+{# ── 1. КЛИЕНТЫ В АЛФАВИТНОМ ПОРЯДКЕ ── #}
+<h2>1. Клиенты в алфавитном порядке и сумма покупок</h2>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>ФИО клиента</th>
+            <th>Телефон</th>
+            <th>Сумма покупок</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clients_alpha %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ c.last_name }} {{ c.first_name }} {{ c.middle_name|default:"" }}</td>
+            <td>{{ c.phone }}</td>
+            <td>
+                {% if c.total_spent %}
+                <strong>{{ c.total_spent }} BYN</strong>
+                {% else %}
+                <span style="color: #999;">нет покупок</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{# ── 2. СТАТИСТИКА ПО ПРОДАЖАМ ── #}
+<h2 style="margin-top: 50px;">2. Статистические показатели по сумме продаж</h2>
+{% if sales_stats %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 16px;">
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Общая выручка</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ sales_stats.total }} BYN</div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Среднее (mean)</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ sales_stats.mean }} BYN</div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Медиана (median)</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ sales_stats.median }} BYN</div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Мода (mode)</div>
+        <div style="font-size: 22px; font-weight: bold;">
+            {% if sales_stats.mode %}
+            {{ sales_stats.mode }} BYN
+            {% else %}
+            <span style="font-size: 14px; color: #999;">нет единственной моды</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Клиентов с покупками</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ sales_stats.count }}</div>
+    </div>
+
+</div>
+{% else %}
+<p style="color: #999;">Недостаточно данных для расчёта.</p>
+{% endif %}
+
+{# ── 3. СТАТИСТИКА ПО ВОЗРАСТУ ── #}
+<h2 style="margin-top: 50px;">3. Статистические показатели по возрасту клиентов</h2>
+{% if age_stats %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-top: 16px;">
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Средний возраст</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ age_stats.mean }} лет</div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Медиана возраста</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ age_stats.median }} лет</div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Самый молодой</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ age_stats.min }} лет</div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Самый старший</div>
+        <div style="font-size: 22px; font-weight: bold;">{{ age_stats.max }} лет</div>
+    </div>
+
+</div>
+{% else %}
+<p style="color: #999;">Недостаточно данных для расчёта.</p>
+{% endif %}
+
+{# ── 4. ПОПУЛЯРНЫЕ НАПРАВЛЕНИЯ ── #}
+<h2 style="margin-top: 50px;">4. Популярность направлений (по числу проданных туров)</h2>
+{% if most_popular %}
+<div class="card" style="border-left: 4px solid #28a745; margin-bottom: 20px;">
+    <p style="margin: 0; font-size: 15px;">
+        🏆 Самое популярное направление:
+        <strong>{{ most_popular.name }}</strong>
+        — {{ most_popular.tours_sold }} проданных туров
+    </p>
+</div>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Место</th>
+            <th>Страна</th>
+            <th>Продано туров</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for country in popular_countries %}
+        <tr {% if forloop.first %}style="background: #f0fff0; font-weight: bold;" {% endif %}>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ country.name }}</td>
+            <td>{{ country.tours_sold }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{# ── 5. ПРИБЫЛЬНЫЕ НАПРАВЛЕНИЯ ── #}
+<h2 style="margin-top: 50px;">5. Прибыльность направлений (по выручке)</h2>
+{% if most_profitable %}
+<div class="card" style="border-left: 4px solid #007bff; margin-bottom: 20px;">
+    <p style="margin: 0; font-size: 15px;">
+        💰 Наиболее прибыльное направление:
+        <strong>{{ most_profitable.name }}</strong>
+        — {{ most_profitable.revenue }} BYN
+    </p>
+</div>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Место</th>
+            <th>Страна</th>
+            <th>Выручка</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for country in profitable_countries %}
+        <tr {% if forloop.first %}style="background: #f0f8ff; font-weight: bold;" {% endif %}>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ country.name }}</td>
+            <td>
+                {% if country.revenue %}
+                {{ country.revenue }} BYN
+                {% else %}
+                <span style="color: #999;">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{# ── 6. ВИЗУАЛИЗАЦИЯ ── #}
+<h2 style="margin-top: 50px;">6. Визуализация</h2>
+<p style="color: #666; margin-bottom: 30px;">
+    Графики сгенерированы на сервере средствами Python (matplotlib).
+</p>
+
+<h3>График 1 — Выручка по странам назначения</h3>
+<p style="color: #888; font-size: 13px;">
+    Распределение выручки по группам (странам).
+    Позволяет выявить наиболее прибыльные направления.
+</p>
+<div class="card" style="padding: 10px; text-align: center;">
+    <img src="{% url 'chart_sales_by_country' %}" alt="Выручка по странам"
+        style="max-width: 100%; height: auto; border-radius: 4px;">
+</div>
+
+<h3 style="margin-top: 40px;">График 2 — Популярность классов отелей</h3>
+<p style="color: #888; font-size: 13px;">
+    Распределение проданных туров по звёздности отеля.
+    Показывает какой класс отдыха выбирают клиенты чаще всего.
+</p>
+<div class="card" style="padding: 10px; text-align: center;">
+    <img src="{% url 'chart_tours_by_stars' %}" alt="Популярность классов отелей"
+        style="max-width: 100%; height: auto; border-radius: 4px;">
+</div>
+
+<h3 style="margin-top: 40px;">График 3 — Заказы и выручка по месяцам</h3>
+<p style="color: #888; font-size: 13px;">
+    Изменение количества заказов и выручки по датам.
+    Позволяет отследить сезонность спроса на туры.
+</p>
+<div class="card" style="padding: 10px; text-align: center;">
+    <img src="{% url 'chart_orders_by_month' %}" alt="Заказы по месяцам"
+        style="max-width: 100%; height: auto; border-radius: 4px;">
+</div>
+
+{% endblock %}

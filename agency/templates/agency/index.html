@@ -1,0 +1,17 @@
+{% extends 'agency/base.html' %}
+
+{% block title %}Главная — Глобус Тревел{% endblock %}
+
+{% block content %}
+<h1>Добро пожаловать в Глобус Тревел</h1>
+<p>Мы подберем для вас лучший отдых. Полная база отелей, актуальные цены и подробное описание климата для каждого
+    сезона.</p>
+
+{% if latest_news %}
+<div class="card" style="border-left: 4px solid #111;">
+    <h3 style="margin-top: 0;">Последняя новость: {{ latest_news.title }}</h3>
+    <p style="margin: 5px 0;"><small style="color: #666;">{{ latest_news.published_date|date:"d.m.Y H:i" }}</small></p>
+    <p style="margin: 10px 0 0 0; font-style: italic;">{{ latest_news.short_description }}</p>
+</div>
+{% endif %}
+{% endblock %}

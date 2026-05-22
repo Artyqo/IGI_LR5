@@ -1,0 +1,113 @@
+{% extends 'agency/base.html' %}
+
+{% block title %}Каталог туров — Глобус Тревел{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1>Доступные направления туризма</h1>
+
+    {% if request.user.is_authenticated and request.user.is_superuser %}
+    <a href="{% url 'tour_create' %}" class="btn" style="background: #28a745;">+ Добавить путевку</a>
+    {% endif %}
+</div>
+
+<div class="card" style="background: #fafafa; border-color: #eee;">
+    <form method="get" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 1 1 220px; min-width: 180px;">
+            <label style="font-size: 13px; color: #555;">Поиск:</label>
+            <input type="search" name="q" value="{{ search_query }}" placeholder="Страна, отель, тур"
+                style="margin-bottom: 0;">
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 13px; color: #555;">Страна:</label>
+            <select name="country" style="margin-bottom: 0;">
+                <option value="">Все страны</option>
+                {% for c in countries %}
+                {% if c.id|stringformat:"s" == selected_country|stringformat:"s" %}
+                <option value="{{ c.id }}" selected>{{ c.name }}</option>
+                {% else %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 13px; color: #555;">Макс. цена тура:</label>
+            <input type="number" name="price" value="{{ selected_price }}" placeholder="BYN" style="margin-bottom: 0;">
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 13px; color: #555;">Класс отеля:</label>
+            <select name="stars" style="margin-bottom: 0;">
+                <option value="">Любой класс</option>
+                {% for star in "12345"|make_list %}
+                {% if selected_stars|stringformat:"s" == star|stringformat:"s" %}
+                <option value="{{ star }}" selected>{{ star }} ★</option>
+                {% else %}
+                <option value="{{ star }}">{{ star }} ★</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 13px; color: #555;">Категория:</label>
+            <select name="is_hot" style="margin-bottom: 0;">
+                <option value="">Все путевки</option>
+                {% if selected_hot|stringformat:"s" == "1" %}
+                <option value="1" selected>🔥 Только горящие</option>
+                {% else %}
+                <option value="1">🔥 Только горящие</option>
+                {% endif %}
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 170px;">
+            <label style="font-size: 13px; color: #555;">Сортировка:</label>
+            <select name="sort" style="margin-bottom: 0;">
+                <option value="departure" {% if selected_sort == "departure" %}selected{% endif %}>Дата вылета</option>
+                <option value="price_asc" {% if selected_sort == "price_asc" %}selected{% endif %}>Цена: сначала дешевле</option>
+                <option value="price_desc" {% if selected_sort == "price_desc" %}selected{% endif %}>Цена: сначала дороже</option>
+                <option value="country" {% if selected_sort == "country" %}selected{% endif %}>Страна А-Я</option>
+                <option value="stars_desc" {% if selected_sort == "stars_desc" %}selected{% endif %}>Больше звезд</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn">Применить</button>
+            <a href="{% url 'tour_list' %}" class="btn"
+                style="background: #6c757d; color: #fff; text-align: center; line-height: 1.4;">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+{% for tour in tours %}
+<div class="card" style="position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin: 0 0 10px 0;">
+                {{ tour.title }}
+                {% if tour.is_hot %}
+                <span
+                    style="background: #dc3545; color: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 3px; margin-left: 10px; vertical-align: middle;">ГОРЯЩАЯ</span>
+                {% endif %}
+            </h3>
+            <p style="margin: 5px 0; color: #444;">
+                Отель: <strong>{{ tour.hotel }}</strong> | Страна: <strong>{{ tour.hotel.country }}</strong>
+            </p>
+            <p style="margin: 5px 0; font-size: 14px; color: #666;">
+                Длительность: {{ tour.get_duration_weeks_display }} | Вылет: {{ tour.departure_date|date:"d.m.Y" }}
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">{{ tour.price }} BYN</div>
+            <a href="{% url 'tour_detail' tour.id %}" class="btn">Подробнее</a>
+        </div>
+    </div>
+</div>
+{% empty %}
+<p style="color: #666; text-align: center; margin-top: 40px;">По выбранным параметрам путевок не найдено.</p>
+{% endfor %}
+{% endblock %}

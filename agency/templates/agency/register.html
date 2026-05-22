@@ -1,0 +1,154 @@
+{% extends 'agency/base.html' %}
+
+{% block title %}Регистрация — Глобус Тревел{% endblock %}
+
+{% block content %}
+<style>
+    .reg-container {
+        max-width: 480px;
+        margin: 0 auto;
+    }
+
+    .reg-form {
+        margin-top: 20px;
+    }
+
+    .reg-field {
+        margin-bottom: 16px;
+    }
+
+    .reg-label {
+        display: block;
+        font-size: 14px;
+        color: #444;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+    .reg-required-star {
+        color: #dc3545;
+    }
+
+    .reg-error-border {
+        border: 1px solid #dc3545;
+        border-radius: 4px;
+    }
+
+    .reg-help-text {
+        font-size: 12px;
+        color: #888;
+        margin: 4px 0 0 0;
+    }
+
+    .reg-error-text {
+        font-size: 13px;
+        color: #dc3545;
+        margin: 5px 0 0 0;
+        font-weight: 500;
+    }
+
+    .reg-nonfield-errors {
+        background: #fff5f5;
+        border: 1px solid #dc3545;
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+    }
+
+    .reg-nonfield-error {
+        margin: 0;
+        color: #dc3545;
+        font-size: 14px;
+    }
+
+    .reg-submit-btn {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .reg-login-link {
+        margin-top: 20px;
+        font-size: 14px;
+        text-align: center;
+        color: #111;
+    }
+</style>
+
+<div class="reg-container">
+    <h2>Регистрация клиента</h2>
+
+    <form method="post" class="reg-form">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div class="reg-field">
+            <label for="{{ field.id_for_label }}" class="reg-label">
+                {{ field.label }}
+                {% if field.field.required %}
+                <span class="reg-required-star">*</span>
+                {% endif %}
+            </label>
+
+            {# Поле с красной рамкой если есть ошибка #}
+            <div {% if field.errors %}class="reg-error-border" {% endif %}>
+                {{ field }}
+            </div>
+
+            {# Подсказка под полем #}
+            {% if field.help_text %}
+            <p class="reg-help-text">
+                {{ field.help_text }}
+            </p>
+            {% endif %}
+
+            {# Ошибки красным текстом #}
+            {% for error in field.errors %}
+            <p class="reg-error-text">
+                ⚠ {{ error }}
+            </p>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        {# Ошибки не привязанные к конкретному полю (non_field_errors) #}
+        {% if form.non_field_errors %}
+        <div class="reg-nonfield-errors">
+            {% for error in form.non_field_errors %}
+            <p class="reg-nonfield-error">⚠ {{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn reg-submit-btn">
+            Создать аккаунт
+        </button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Телефон: маска +375 (29) XXX-XX-XX
+            var phoneInput = document.querySelector('input[name="phone"]');
+            if (phoneInput) {
+                phoneInput.setAttribute('pattern', '\\+375 \\((25|29|33|44)\\) \\d{3}-\\d{2}-\\d{2}');
+                phoneInput.setAttribute('title', 'Формат: +375 (29) XXX-XX-XX. Коды: 25, 29, 33, 44');
+            }
+
+            // Дата рождения: не моложе 18 лет
+            var birthInput = document.querySelector('input[name="birth_date"]');
+            if (birthInput) {
+                var today = new Date();
+                var maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+                var yyyy = maxDate.getFullYear();
+                var mm = String(maxDate.getMonth() + 1).padStart(2, '0');
+                var dd = String(maxDate.getDate()).padStart(2, '0');
+                birthInput.setAttribute('max', yyyy + '-' + mm + '-' + dd);
+                birthInput.setAttribute('title', 'Вам должно быть не менее 18 лет');
+            }
+        });
+    </script>
+
+    <p class="reg-login-link">
+        Уже есть аккаунт? <a href="{% url 'login' %}" style="color: #111;">Войти</a>
+    </p>
+</div>
+{% endblock %}

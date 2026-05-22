@@ -1,0 +1,219 @@
+{% extends 'agency/base.html' %}
+
+{% block title %}{{ tour.title }} — Глобус Тревел{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h1 style="margin-bottom: 8px;">
+                {{ tour.title }}
+            </h1>
+            {% if tour.is_hot %}
+            <span style="background: #dc3545; color: #fff; padding: 3px 8px; font-size: 12px;
+                                         font-weight: bold; border-radius: 3px; vertical-align: middle;">
+                🔥 ГОРЯЩАЯ
+            </span>
+            {% endif %}
+            <p style="font-size: 17px; color: #555; margin: 0;">
+                Страна: <strong>{{ tour.hotel.country.name }}</strong>
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <span style="font-size: 26px; font-weight: bold; color: #111;">{{ tour.price }} BYN</span>
+            <p style="color: #666; margin: 4px 0 0 0; font-size: 14px;">
+                за {{ tour.get_duration_weeks_display }}
+            </p>
+        </div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+
+    {# ======================================================= #}
+    {# БЛОК: ТЕКУЩАЯ ПОГОДА (OpenWeatherMap API) #}
+    {# ======================================================= #}
+    {% if weather %}
+    <div style="background: #f0f8ff; border: 1px solid #cce5ff; border-radius: 6px;
+                padding: 18px 22px; margin-bottom: 24px; display: flex;
+                align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="https://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="{{ weather.description }}"
+                style="width: 60px; height: 60px;">
+            <div>
+                <div style="font-size: 28px; font-weight: bold; line-height: 1;">
+                    {{ weather.temp }}°C
+                </div>
+                <div style="font-size: 13px; color: #555; margin-top: 2px;">
+                    {{ weather.description }}
+                </div>
+            </div>
+        </div>
+        <div style="flex: 1; min-width: 160px;">
+            <p style="margin: 0 0 4px 0; font-size: 14px; color: #444;">
+                📍 <strong>{{ weather.city_ru }}</strong>, {{ tour.hotel.country.name }}
+            </p>
+            <p style="margin: 0 0 4px 0; font-size: 13px; color: #666;">
+                Ощущается как <strong>{{ weather.feels_like }}°C</strong>
+            </p>
+            <p style="margin: 0 0 4px 0; font-size: 13px; color: #666;">
+                Влажность: <strong>{{ weather.humidity }}%</strong>
+            </p>
+            <p style="margin: 0; font-size: 13px; color: #666;">
+                Ветер: <strong>{{ weather.wind_speed }} м/с</strong>
+            </p>
+        </div>
+        <div style="font-size: 11px; color: #999; align-self: flex-end;">
+            Источник: OpenWeatherMap
+        </div>
+    </div>
+    {% endif %}
+
+    {# ======================================================= #}
+    {# БЛОК: КУРСЫ ВАЛЮТ (API НБРБ) #}
+    {# ======================================================= #}
+    {% if currency_prices %}
+    <div style="background: #f9fff9; border: 1px solid #c3e6cb; border-radius: 6px;
+                padding: 16px 22px; margin-bottom: 24px;">
+        <h4 style="margin: 0 0 12px 0; font-size: 15px; color: #333;">
+            Стоимость тура в других валютах
+            <span style="font-size: 12px; color: #888; font-weight: normal;">
+                (курс НБРБ на сегодня)
+            </span>
+        </h4>
+        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+            {% if currency_prices.USD %}
+            <div style="text-align: center; min-width: 100px;">
+                <div style="font-size: 22px; font-weight: bold; color: #155724;">
+                    {{ currency_prices.USD }} $
+                </div>
+                <div style="font-size: 12px; color: #888; margin-top: 2px;">
+                    1 USD = {{ currency_prices.usd_rate }} BYN
+                </div>
+            </div>
+            {% endif %}
+            {% if currency_prices.EUR %}
+            <div style="text-align: center; min-width: 100px;">
+                <div style="font-size: 22px; font-weight: bold; color: #155724;">
+                    {{ currency_prices.EUR }} €
+                </div>
+                <div style="font-size: 12px; color: #888; margin-top: 2px;">
+                    1 EUR = {{ currency_prices.eur_rate }} BYN
+                </div>
+            </div>
+            {% endif %}
+            {% if currency_prices.RUB %}
+            <div style="text-align: center; min-width: 100px;">
+                <div style="font-size: 22px; font-weight: bold; color: #155724;">
+                    {{ currency_prices.RUB }} ₽
+                </div>
+                <div style="font-size: 12px; color: #888; margin-top: 2px;">
+                    1 RUB = {{ currency_prices.rub_rate }} BYN
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# ======================================================= #}
+    {# БЛОК: СПЕЦИФИКАЦИЯ ТУРА #}
+    {# ======================================================= #}
+    <h3>Спецификация проживания</h3>
+    <p>Отель: <strong>{{ tour.hotel.name }}</strong> ({{ tour.hotel.stars }}★)</p>
+    <p>Стоимость проживания в сутки: <strong>{{ tour.hotel.price_per_day }} BYN</strong></p>
+    <p>Дата вылета: <strong>{{ tour.departure_date|date:"d/m/Y" }}</strong></p>
+
+    {# ======================================================= #}
+    {# БЛОК: КЛИМАТ ПО СЕЗОНАМ (статичные данные из БД) #}
+    {# ======================================================= #}
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 4px; margin-top: 20px;">
+        <h4 style="margin-top: 0;">Особенности климата по сезонам:</h4>
+        <ul style="margin: 0; padding-left: 20px; line-height: 2;">
+            <li>❄️ <strong>Зима:</strong> {{ tour.hotel.country.climate_winter }}</li>
+            <li>🌱 <strong>Весна:</strong> {{ tour.hotel.country.climate_spring }}</li>
+            <li>☀️ <strong>Лето:</strong> {{ tour.hotel.country.climate_summer }}</li>
+            <li>🍂 <strong>Осень:</strong> {{ tour.hotel.country.climate_autumn }}</li>
+        </ul>
+    </div>
+
+    {# ======================================================= #}
+    {# БЛОК: КНОПКИ ДЕЙСТВИЙ (разные для каждой роли) #}
+    {# ======================================================= #}
+    <div style="margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+
+        {% if role == 'client' %}
+        {# КЛИЕНТ — выбирает менеджера и покупает тур #}
+        <form action="{% url 'tour_buy' tour.id %}" method="POST"
+            style="margin: 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            {% csrf_token %}
+            {% if employees %}
+            <div>
+                <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">
+                    Выберите менеджера:
+                </label>
+                <select name="employee_id" required
+                    style="margin-bottom: 0; min-width: 200px; padding: 9px 10px; font-size: 14px;">
+                    <option value="" disabled selected>— выберите —</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.pk }}">{{ emp.full_name }} ({{ emp.position }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div style="align-self: flex-end;">
+                <button type="submit" class="btn" style="background: #28a745; font-size: 15px; padding: 10px 28px;">
+                    🛒 Купить тур
+                </button>
+            </div>
+        </form>
+
+        {% elif role == 'guest' %}
+        {# ГОСТЬ — приглашаем войти #}
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn"
+            style="background: #dc3545; text-decoration: none; padding: 10px 24px;">
+            Войдите, чтобы купить
+        </a>
+        <a href="{% url 'register' %}" class="btn"
+            style="background: #6c757d; text-decoration: none; padding: 10px 24px;">
+            Регистрация
+        </a>
+
+        {% elif role == 'employee' %}
+        {# СОТРУДНИК — только просматривает #}
+        <span style="color: #888; font-size: 14px; padding: 10px 0;">
+            ℹ️ Сотрудники не оформляют покупки напрямую
+        </span>
+
+        {% elif role == 'admin' %}
+        {# ADMIN — управляет каталогом #}
+        <a href="{% url 'tour_update' tour.id %}" class="btn"
+            style="background: #007bff; text-decoration: none; padding: 10px 22px;">
+            ✏️ Редактировать
+        </a>
+        <a href="{% url 'tour_delete' tour.id %}" class="btn"
+            style="background: #6c757d; text-decoration: none; padding: 10px 22px;">
+            🗑 Удалить
+        </a>
+        {% endif %}
+
+        <a href="{% url 'tour_list' %}" class="btn"
+            style="background: #eee; color: #111; text-decoration: none; padding: 10px 22px;">
+            ← Каталог
+        </a>
+    </div>
+
+    {# ======================================================= #}
+    {# Информационная плашка для незарегистрированных #}
+    {# ======================================================= #}
+    {% if role == 'guest' %}
+    <div class="card" style="margin-top: 24px; background: #fffaf0;
+                             border-left: 4px solid #f0ad4e; padding: 14px 18px;">
+        <p style="margin: 0; font-size: 14px; color: #555;">
+            Чтобы купить путёвку, <a href="{% url 'login' %}" style="color: #111; font-weight: bold;">
+                войдите</a> или <a href="{% url 'register' %}" style="color: #111; font-weight: bold;">
+                зарегистрируйтесь</a> как клиент агентства.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'agency/base.html' %}
+
+{% block title %}Отзывы — Глобус Тревел{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1>Отзывы клиентов</h1>
+
+    {% if can_review %}
+    <button class="btn" onclick="openReviewModal()">Добавить отзыв</button>
+    {% elif user.is_authenticated %}
+    <a href="{% url 'profile' %}" class="btn" style="text-decoration: none;">Добавить отзыв</a>
+    {% else %}
+    <a href="#auth-alert" class="btn" style="text-decoration: none; align-items: center; display: inline-flex;">Добавить
+        отзыв</a>
+    {% endif %}
+</div>
+
+{% if not user.is_authenticated %}
+<div id="auth-alert" class="card" style="background: #fff5f5; border-left: 4px solid #d9534f; margin-bottom: 30px;">
+    <p style="margin: 0; color: #333; font-size: 15px;">
+        Только зарегистрированные клиенты могут оставлять отзывы об услугах агентства.
+        Пожалуйста, <a href="{% url 'login' %}"
+            style="color: #111; font-weight: bold; text-decoration: underline;">войдите в аккаунт</a> или
+        <a href="{% url 'register' %}"
+            style="color: #111; font-weight: bold; text-decoration: underline;">зарегистрируйтесь</a>, чтобы заполнить
+        форму.
+    </p>
+</div>
+{% elif not can_review %}
+<div class="card" style="background: #fffaf0; border-left: 4px solid #f0ad4e; margin-bottom: 30px;">
+    <p style="margin: 0; color: #333; font-size: 15px;">
+        Отзывы об услугах оставляют только пользователи с ролью клиента.
+    </p>
+</div>
+{% endif %}
+
+{% if can_review %}
+<div id="reviewModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card"
+        style="background: #fff; width: 100%; max-width: 500px; padding: 30px; border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); position: relative;">
+
+        <span onclick="closeReviewModal()"
+            style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; color: #aaa;">&times;</span>
+
+        <h3 style="margin-top: 0; margin-bottom: 20px;">Оставить отзыв</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; color: #555; display: block; margin-bottom: 5px;">Ваше имя:</label>
+                <input type="text" name="author_name" value="{{ user.username }}" required readonly
+                    style="background: #f9f9f9; color: #666;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 13px; color: #555; display: block; margin-bottom: 5px;">Оценка отдыха:</label>
+                <select name="rating" required>
+                    <option value="5">5 ★★★★★</option>
+                    <option value="4">4 ★★★★</option>
+                    <option value="3">3 ★★★</option>
+                    <option value="2">2 ★★</option>
+                    <option value="1">1 ★</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; color: #555; display: block; margin-bottom: 5px;">Текст отзыва:</label>
+                <textarea name="text" rows="5" required required minlength="10" placeholder="Поделитесь вашими впечатлениями о путешествии..."
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;"></textarea>
+            </div>
+            <div style="text-align: right;">
+                <button type="button" class="btn" onclick="closeReviewModal()"
+                    style="background: #eee; color: #111; margin-right: 10px;">Отмена</button>
+                <button type="submit" class="btn">Отправить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openReviewModal() {
+        document.getElementById('reviewModal').style.display = 'flex';
+    }
+    // Плавно закрываем окно
+    function closeReviewModal() {
+        document.getElementById('reviewModal').style.display = 'none';
+    }
+    // Закрытие при клике на область вне формы
+    window.onclick = function (event) {
+        var modal = document.getElementById('reviewModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+{% endif %}
+
+<div style="margin-top: 20px;">
+    {% for review in all_reviews %}
+    <div class="card" style="border-color: #eee;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <strong>{{ review.author_name }}</strong>
+            <span style="color: #111; font-weight: bold; font-size: 14px;">{{ review.rating }} ★</span>
+        </div>
+        <p style="margin: 0 0 10px 0; color: #333; font-size: 15px; line-height: 1.5;">{{ review.text }}</p>
+        <span style="font-size: 12px; color: #888;">{{ review.date_created|date:"d/m/Y H:i" }}</span>
+    </div>
+    {% empty %}
+    <p style="color: #666; text-align: center; margin-top: 40px;">Отзывов пока нет. Будьте первым, кто поделится
+        впечатлениями!</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'agency/base.html' %}
+{% block title %}Контакты — Глобус Тревел{% endblock %}
+{% block content %}
+<h1>Наши контакты</h1>
+<p>Свяжитесь с нашими специалистами для индивидуального подбора путевок и расчета стоимости.</p>
+
+<div style="margin-top: 30px; display: grid; grid-template-columns: 1fr; gap: 20px;">
+    {% for emp in employees %}
+    <div class="card" style="display: flex; gap: 20px; align-items: center;">
+        <div
+            style="flex-shrink: 0; width: 70px; height: 70px; background: #f5f5f5; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+            {% if emp.photo %}
+            <img src="{{ emp.photo.url }}" alt="{{ emp.full_name }}"
+                style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover;">
+            {% else %}
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            {% endif %}
+        </div>
+        <div>
+            <h3 style="margin: 0 0 5px 0;">{{ emp.full_name }}</h3>
+            <p style="margin: 0 0 5px 0;">Должность: <strong>{{ emp.position }}</strong></p>
+            <p style="margin: 0; font-size: 14px; color: #555;">Телефон: {{ emp.phone }} | Email: {{ emp.email }}</p>
+        </div>
+    </div>
+
+
+    {% empty %}
+    <div class="card" style="display: flex; gap: 20px; align-items: center;">
+        <div
+            style="flex-shrink: 0; width: 70px; height: 70px; background: #f5f5f5; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        </div>
+        <div>
+            <h3 style="margin: 0 0 5px 0;">Иванов Иван Иванович</h3>
+            <p style="margin: 0 0 5px 0;">Должность: <strong>Главный специалист по туризму</strong></p>
+            <p style="margin: 0; font-size: 14px; color: #555;">Телефон: +375 (29) 111-22-33 | Email:
+                ivanov@globustravel.by</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

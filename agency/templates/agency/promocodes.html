@@ -1,0 +1,21 @@
+{% extends 'agency/base.html' %}
+{% block title %}Промокоды и купоны{% endblock %}
+{% block content %}
+<h1>Действующие промокоды</h1>
+{% for p in active_promos %}
+<div class="card" style="border-left: 4px solid #111;">
+    <h3>Код: <code>{{ p.code }}</code></h3>
+    <p>Скидка: <strong>{{ p.discount_amount }}%</strong></p>
+</div>
+{% empty %}
+<p>Нет действующих акций.</p>
+{% endfor %}
+
+<h2 style="margin-top: 40px; color: #666;">Архив купонов</h2>
+{% for p in archive_promos %}
+<div class="card" style="opacity: 0.6;">
+    <h3>Код: <del>{{ p.code }}</del></h3>
+    <p>Скидка составляла: {{ p.discount_amount }}%</p>
+</div>
+{% endfor %}
+{% endblock %}
