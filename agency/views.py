@@ -392,12 +392,13 @@ def tour_create(request):
     if request.method == 'POST':
         form = TourForm(request.POST)
         if form.is_valid():
-            form.save()
+            tour = form.save()  # ← СОХРАНЯЕМ В ПЕРЕМЕННУЮ
             logger.info(f'Администратор {request.user.username} создал тур: {tour.title}')
             messages.success(request, "Путёвка успешно добавлена в каталог!")
             return redirect('tour_list')
+        else:
+            logger.warning(f'Ошибка создания тура: {form.errors}')
     else:
-        logger.warning(f'Ошибка создания тура: {form.errors}')
         form = TourForm()
     return render(request, 'agency/tour_form.html', {
         'form':   form,
@@ -407,7 +408,6 @@ def tour_create(request):
 
 @user_passes_test(is_superuser_only)
 def tour_update(request, pk):
-    """UPDATE: редактирование путёвки — только для admin."""
     tour = get_object_or_404(Tour, pk=pk)
     if request.method == 'POST':
         form = TourForm(request.POST, instance=tour)
@@ -416,8 +416,9 @@ def tour_update(request, pk):
             logger.info(f'Администратор {request.user.username} обновил тур: {tour.title}')
             messages.success(request, "Изменения сохранены.")
             return redirect('tour_detail', pk=tour.pk)
+        else:
+            logger.warning(f'Ошибка обновления тура {pk}: {form.errors}')
     else:
-        logger.warning(f'Ошибка обновления тура {pk}: {form.errors}')
         form = TourForm(instance=tour)
     return render(request, 'agency/tour_form.html', {
         'form':   form,
@@ -666,8 +667,9 @@ def register_view(request):
             logger.info(f'Новый клиент зарегистрирован: {user.username}')
             messages.success(request, "Добро пожаловать! Аккаунт успешно создан.")
             return redirect('profile')
+        else:
+            logger.warning(f'Неудачная регистрация: {request.POST.get("username")}')
     else:
-        logger.warning(f'Неудачная регистрация: {request.POST.get("username")}')
         form = ClientRegistrationForm()
 
     return render(request, 'agency/register.html', {'form': form})
